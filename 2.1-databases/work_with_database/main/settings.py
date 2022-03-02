@@ -50,7 +50,7 @@ MIDDLEWARE = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'netology_import_phones',
         'HOST': '127.0.0.1',
         'PORT': '5432',
