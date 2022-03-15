@@ -31,21 +31,19 @@ DATA = {
 # }
 
 def calc_ing(request, recipe_name):
-
-    number = int(request.GET.get('servings'))
+    number = request.GET.get('servings')
     recipe = dict(DATA[recipe_name])
-    for ingridient in recipe:
-        recipe[ingridient] = recipe[ingridient] * number
-        print(ingridient)
+    print(number)
+    if number:
+        number = int(number)
+        for ingridient in recipe:
+            recipe[ingridient] = recipe[ingridient] * number
+            print(ingridient)
 
     context = {
         'recipe': recipe
 
     }
-    # print(DATA)
-
-    # return HttpResponse({str(recipe)})
-
     return render(request, 'calculator/index.html', context)
 
 
