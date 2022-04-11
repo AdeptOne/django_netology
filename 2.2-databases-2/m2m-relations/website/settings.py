@@ -80,7 +80,7 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '5432',
         'USER': 'postgres',
-        'PASSWORD': '1111'
+        'PASSWORD': '1111',
     }
 }
 
@@ -106,7 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
-LANGUAGE_CODE = 'ru'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'Europe/Moscow'
 

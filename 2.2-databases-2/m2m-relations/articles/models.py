@@ -1,9 +1,26 @@
 from django.db import models
 
 
-class Theme(models.Model):
+class Article(models.Model):
+    id = models.AutoField(unique=True, primary_key=True)
+    title = models.CharField(max_length=256, verbose_name='Название')
+    text = models.TextField(verbose_name='Текст')
+    published_at = models.DateTimeField(verbose_name='Дата публикации')
+    image = models.ImageField(null=True, blank=True, verbose_name='Изображение')
 
-    name = models.TextField(max_length=50, verbose_name='Название')
+    class Meta:
+        verbose_name = 'Статья'
+        verbose_name_plural = 'Статьи'
+        ordering = ['-published_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Tag(models.Model):
+    id = models.AutoField(unique=True, primary_key=True)
+    name = models.CharField(max_length=30, verbose_name='Раздел')
+    articles = models.ManyToManyField(Article, verbose_name='Статьи', related_name='tags', through='ArticleScope')
 
     class Meta:
         verbose_name = 'Тема'
@@ -14,30 +31,16 @@ class Theme(models.Model):
         return self.name
 
 
-class Article(models.Model):
-
-    title = models.CharField(max_length=256, verbose_name='Название')
-    text = models.TextField(verbose_name='Текст')
-    published_at = models.DateTimeField(verbose_name='Дата публикации')
-    image = models.ImageField(null=True, blank=True, verbose_name='Изображение',)
-    # scopes = models.ManyToManyField(Theme, related_name='article', through='Scope')
+class ArticleScope(models.Model):
+    id = models.AutoField(unique=True, primary_key=True)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, verbose_name='Статья', related_name='scopes')
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, verbose_name='Раздел', related_name='scopes')
+    is_main = models.BooleanField(default=False, verbose_name='Основной')
 
     class Meta:
-        verbose_name = 'Статья'
-        verbose_name_plural = 'Статьи'
-        # ordering = ['-published_at']
-
-    def __str__(self):
-        return self.title
-
-
-class Scope(models.Model):
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='scopes')
-    tag = models.ForeignKey(Theme, on_delete=models.CASCADE, related_name='tag', verbose_name='Название')
-    is_main = models.BooleanField(default=None, verbose_name='Основной')
-
-    class Meta:
-        verbose_name = 'Тэг'
-        verbose_name_plural = 'Тэги'
+        verbose_name = 'Тематика статьи'
+        verbose_name_plural = 'Тематики статьи'
         ordering = ['-is_main', 'tag']
 
+    def __str__(self):
+        return f'{"Основной раздел" if self.is_main else ""}'
