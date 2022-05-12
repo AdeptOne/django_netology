@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
-from advertisements.models import Advertisement
+from advertisements.models import Advertisement, Favorite
+from advertisements.settings import MAX_COUNT, _OPEN, _DRAFT, _CLOSED
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,21 +27,28 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'description', 'creator',
                   'status', 'created_at', )
 
-    def create(self, validated_data):
-        """Метод для создания"""
-
-        # Простановка значения поля создатель по-умолчанию.
-        # Текущий пользователь является создателем объявления
-        # изменить или переопределить его через API нельзя.
-        # обратите внимание на `context` – он выставляется автоматически
-        # через методы ViewSet.
-        # само поле при этом объявляется как `read_only=True`
-        validated_data["creator"] = self.context["request"].user
-        return super().create(validated_data)
-
-    def validate(self, data):
+    def validate(self, attrs):
         """Метод для валидации. Вызывается при создании и обновлении."""
 
-        # TODO: добавьте требуемую валидацию
+        if self.partial and self.context['request'].user.is_superuser:
+            attrs['creator'] = self.instance.creator
+        else:
+            attrs['creator'] = self.context['request'].user
 
-        return data
+        if attrs.get('status') == _CLOSED or attrs.get('status') == _DRAFT:
+            return attrs
+
+        count_opened = Advertisement.objects.filter(creator=attrs['creator'], status=_OPEN).count()
+        if count_opened >= MAX_COUNT:
+            raise ValidationError(f'У пользователя - {attrs["creator"]}, '
+                                  f'не может быть более {MAX_COUNT} открытых объявлений!')
+        else:
+            return attrs
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Serializer для избранных объявлений."""
+
+    class Meta:
+        model = Favorite
+        fields = '__all__'
